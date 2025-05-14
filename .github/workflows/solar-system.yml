@@ -169,24 +169,49 @@ jobs:
               # ghcr.io/${{ github.repository_owner | toLower }}/solar-system:${{ github.sha }}
 
     dev-deploy:
+      # needs: docker
+      # runs-on: ubuntu-latest
+      # steps:
+      #   - name: checkout Repo
+      #     uses: actions/checkout@v4
+
+      #   - name: Install kubectl CLI
+      #     uses: azure/setup-kubectl@v4
+      #     with:
+      #       version: 'v1.26.0'
+      #   - name: Set Kubeconfig
+      #     uses: azure/k8s-set-context@v4
+      #     with:
+      #       method: kubeconfig
+      #       kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      #   - name: Fetch kubernetes Cluster Details
+      #     run: |
+      #       kubectl version --short
+      #       echo -----------------------------
+      #       kubectl get nodes
+      
       needs: docker
       runs-on: ubuntu-latest
       steps:
-        - name: checkout Repo
+        - name: Checkout Repo
           uses: actions/checkout@v4
 
-        - name: Install kubectl CLI
+        - name: Setup KinD cluster
+          uses: engineerd/setup-kind@v0.6.0
+          with:
+            version: 'v0.20.0'
+
+        - name: Setup kubectl
           uses: azure/setup-kubectl@v4
           with:
-            version: 'v1.26.0'
-        - name: Set Kubeconfig
-          uses: azure/k8s-set-context@v4
-          with:
-            method: kubeconfig
-            kubeconfig: ${{ secrets.KUBECONFIG }}
+            version: 'latest'
 
-        - name: Fetch kubernetes Cluster Details
+        - name: Créer et déployer sur KinD
           run: |
-            kubectl version --short
-            echo -----------------------------
+            kubectl cluster-info
             kubectl get nodes
+            echo "-----------------------------"
+            # Déploiement exemple :
+            # kubectl apply -f ./k8s/deployment.yaml
+            # kubectl apply -f ./k8s/service.yaml
